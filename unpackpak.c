@@ -7,7 +7,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
+#include <string.h> // strstr
 #include <sys/stat.h> // mkdir
 #include <unistd.h>   // access, getopt
 
@@ -149,15 +149,19 @@ int main(int argc, char *argv[]) {
   FILE *file;
   char *buffer;
   int opt;
+  int game_files_only = 0;
 
   /* Get command-line arguments */
-  while ((opt = getopt(argc, argv, "i:o:")) != -1) {
+  while ((opt = getopt(argc, argv, "i:o:g")) != -1) {
     switch (opt) {
     case 'i':
       inputPath = optarg;
       break;
     case 'o':
       outputFolder = optarg;
+      break;
+    case 'g':
+      game_files_only = 1;
       break;
     default:
       fprintf(stderr,
@@ -182,6 +186,8 @@ int main(int argc, char *argv[]) {
   for (i = 0; i < numEntries; i++) {
     fseek(file, entries[i].fileNamePos + header.startOfFileNames, SEEK_SET);
     fgets(fileName, FILENAME_MAX, file);
+    if (game_files_only && strstr(fileName, "classic") == NULL)
+      continue;
     printf("Extracting %s...\n", fileName);
     char outputPath[FILENAME_MAX];
     char *scp;
