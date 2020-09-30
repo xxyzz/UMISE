@@ -75,16 +75,18 @@ convert_wav() {
         for wav_file in MusicNew_track*.wav; do
             INDEX="${wav_file#*track}"
             INDEX="${INDEX%.*}"
-            if [[ $INDEX == "18b" ]]; then
-                INDEX=18
-            else
-                if [[ ! $INDEX =~ ^[0-9]+$ ]]; then
-                    continue
-                fi
+            if [[ ! $INDEX =~ ^[0-9]+$ ]]; then
+                continue
             fi
             INDEX=$((INDEX - 1))
             ffmpeg -i $wav_file track"$INDEX".flac
         done
+
+        # concatenate track18b and track18c
+        TRACK18=('MusicNew_track18b.wav' 'MusicNew_track18c.wav')
+        ffmpeg -f concat -safe 0 -i                                        \
+               <(for f in "${TRACK18[@]}"; do echo "file '$PWD/$f'"; done) \
+               track17.flac
     fi
 }
 
