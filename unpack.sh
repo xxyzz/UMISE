@@ -4,7 +4,7 @@ command_exists() {
     command -v "$@" >/dev/null 2>&1
 }
 
-main() {
+check_dependencies() {
     if ! command_exists innoextract; then
         echo "innoextract not installed"
         exit 1;
@@ -13,38 +13,42 @@ main() {
         echo "vgmstream_cli not installed"
         exit 1
     fi
-    if [[ $# -ne 2 ]]; then
-        echo "Usage: ./unpack.sh ./path_of_installer_exe ./path_of_output_folder"
-        exit 1;
+    if ! command_exists ffmpeg; then
+        echo "ffmpeg not installed"
+        exit 1
     fi
+}
 
-    EXE_PATH=$1;
-    OUT_PATH=$2;
-    PAK_PATH=$OUT_PATH"/app/Monkey1.pak"
-    UNPACK_PATH=$OUT_PATH"/unpack_pak/"
-    AUDIO_PATH=$OUT_PATH"/app/audio"
-
-    # unpack installer
-    if [[ -d $OUT_PATH && -n "$(ls -A $OUT_PATH)" ]]; then
+unpack_installer() {
+    # $1: OUT_PATH, $2: EXE_PATH
+    if [[ -d $1 && -n "$(ls -A $1)" ]]; then
         echo "Skip unpack installer"
     else
-        innoextract $EXE_PATH -d $OUT_PATH
+        echo "Unpack installer"
+        innoextract $2 -d $1
     fi
+}
 
+unpack_pak() {
+    # $1: UNPACK_PATH, $2: $PAK_PATH
     make
-    # unpack Monkey1.pak
-    if [[ -d $UNPACK_PATH && -n "$(ls -A $UNPACK_PATH)" ]]; then
+    if [[ -d $1 && -n "$(ls -A $1)" ]]; then
         echo "Skip unpack .pak"
     else
-        ./unpackpak -i $PAK_PATH -o $UNPACK_PATH
+        echo "Unpack pak file"
+        ./unpackpak -i $2 -o $1 -g
     fi
+}
 
-    # unpack se sound files
-    if [[ -n "$(find $AUDIO_PATH -name '*.wav')" ]]; then
+# unpack se sound files
+unpack_xwb() {
+    # $1: AUDIO_PATH
+    if [[ -n "$(find $1 -name '*.wav')" ]]; then
         echo "Skip unpack .xwb files"
     else
-        cd $AUDIO_PATH
-        for xwb_file in "$AUDIO_PATH"/*.xwb; do
+        echo "Unpack xwb files"
+        cd $1
+        for xwb_file in ./*.xwb; do
             STREAM_COUNT=$(vgmstream_cli -m $xwb_file | \
                                awk '$1 == "stream" && $2 == "count:" { print $3 }')
             WAV_FILENAME="?n.wav"
@@ -56,6 +60,74 @@ main() {
             done
         done
     fi
+}
+
+# convert wav to flac
+convert_wav() {
+    # $1: AUDIO_PATH
+    if [[ -n "$(find ./ -name '*.flac')" ]]; then
+        echo "Skip convert wav files"
+    else
+        if [[ ! $(pwd) =~ "app/audio" ]]; then
+           cd $1 # unpack xwb is skiped
+        fi
+        echo "Convert wav to flac"
+        for wav_file in MusicNew_track*.wav; do
+            INDEX="${wav_file#*track}"
+            INDEX="${INDEX%.*}"
+            if [[ $INDEX == "18b" ]]; then
+                INDEX=18
+            else
+                if [[ ! $INDEX =~ ^[0-9]+$ ]]; then
+                    continue
+                fi
+            fi
+            INDEX=$((INDEX - 1))
+            ffmpeg -i $wav_file track"$INDEX".flac
+        done
+    fi
+}
+
+copy_files() {
+    # $1: OUT_PATH
+    SCUMMVM_FOLDER="monkey"
+    if [[ -d $SCUMMVM_FOLDER && -n "$(ls -A $SCUMMVM_FOLDER)" ]]; then
+        echo "Skip copy files"
+    else
+        # cd to OUT_PATH
+        if [[ ! $(pwd) =~ "app/audio" ]]; then
+            cd $1
+        else
+            cd ../../
+        fi
+        echo "Move game files and audio files"
+        if [[ ! -d $SCUMMVM_FOLDER  ]]; then
+           mkdir $SCUMMVM_FOLDER
+        fi
+        cp app/audio/*.flac $SCUMMVM_FOLDER
+        cp unpack_pak/classic/en/* $SCUMMVM_FOLDER
+    fi
+}
+
+main() {
+    if [[ $# -ne 2 ]]; then
+        echo "Usage: ./unpack.sh ./path_of_installer ./path_of_output_folder"
+        exit 1;
+    fi
+
+    check_dependencies
+
+    EXE_PATH=$1;
+    OUT_PATH=$2;
+    PAK_PATH=$OUT_PATH"/app/Monkey1.pak"
+    UNPACK_PATH=$OUT_PATH"/unpack_pak/"
+    AUDIO_PATH=$OUT_PATH"/app/audio"
+
+    unpack_installer $OUT_PATH $EXE_PATH
+    unpack_pak $UNPACK_PATH $PAK_PATH
+    unpack_xwb $AUDIO_PATH
+    convert_wav $AUDIO_PATH
+    copy_files $OUT_PATH
 }
 
 main "$@"
