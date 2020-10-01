@@ -10,7 +10,7 @@ Unpack monkey island special edition game files for Unix-like operating systems.
 
 - [vgmstream_cli](https://github.com/losnoco/vgmstream)
 
-- FFmpeg
+- [FFmpeg](https://github.com/ffmpeg/ffmpeg)
 
 ## Usage
 
@@ -21,6 +21,16 @@ Unpack monkey island special edition game files for Unix-like operating systems.
 ## TODO
 
 Port talkie scripts(http://gratissaugen.de/ultimatetalkies/monkey1.html).
+
+## Links
+
+- https://web.archive.org/web/20160312070218/helicoid.de/scumm/mkspeech.zip
+
+- https://web.archive.org/web/20041101200002/http://hibernatus34.free.fr/scumm
+
+- https://github.com/scummvm/scummvm-tools
+
+- https://jestarjokin.net/apps/scummpacker
 
 ## License
 

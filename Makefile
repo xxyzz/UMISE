@@ -1,10 +1,10 @@
 CC = clang
 CFLAGS = -Wall -Wextra
-TARGETS = unpackpak
+TARGETS = extractpak
 
 all: $(TARGETS)
 
-unpackpak: unpackpak.c
+extractpak: extractpak.c
 	$(CC) $< -o $@ $(CFLAGS)
 
 clean:

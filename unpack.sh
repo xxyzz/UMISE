@@ -4,19 +4,18 @@ command_exists() {
     command -v "$@" >/dev/null 2>&1
 }
 
-check_dependencies() {
-    if ! command_exists innoextract; then
-        echo "innoextract not installed"
+check_dependency() {
+    if ! command_exists $1; then
+        echo "$1 is not installed"
         exit 1;
     fi
-    if ! command_exists vgmstream_cli; then
-        echo "vgmstream_cli not installed"
-        exit 1
-    fi
-    if ! command_exists ffmpeg; then
-        echo "ffmpeg not installed"
-        exit 1
-    fi
+}
+
+check_dependencies() {
+    COMMANDS=('innoextract' 'vgmstream_cli' 'ffmpeg')
+    for command in "${COMMANDS[@]}"; do
+        check_dependency $command
+    done
 }
 
 unpack_installer() {
@@ -36,7 +35,7 @@ unpack_pak() {
         echo "Skip unpack .pak"
     else
         echo "Unpack pak file"
-        ./unpackpak -i $2 -o $1 -g
+        ./extractpak -i $2 -o $1 -g
     fi
 }
 

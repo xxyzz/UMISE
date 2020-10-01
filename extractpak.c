@@ -1,4 +1,6 @@
-/* Origin code: https://slexy.org/view/s21wNL2X3x */
+/* Origin code written by jott:
+ * https://web.archive.org/web/20160308005531/helicoid.de/scumm/extractpak.zip
+ */
 
 #include <ctype.h>
 #include <dirent.h>
@@ -7,7 +9,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h> // strstr
+#include <string.h>   // strstr
 #include <sys/stat.h> // mkdir
 #include <unistd.h>   // access, getopt
 
@@ -165,7 +167,8 @@ int main(int argc, char *argv[]) {
       break;
     default:
       fprintf(stderr,
-              "Usage: %s [-i ./inputpath/Monkey1.pak] [-o ./output_folder/]",
+              "Usage: %s [-i ./inputpath/Monkey1.pak] [-o ./output_folder/] "
+              "[-g only extract scumm files]",
               argv[0]);
       exit(EXIT_FAILURE);
     }
