@@ -42,7 +42,7 @@ unpack_pak() {
 # unpack se sound files
 unpack_xwb() {
     # $1: AUDIO_PATH
-    if [[ -n "$(find $1 -name '*.wav')" ]]; then
+    if [[ -n "$(find $1 -name '*.flac')" ]]; then
         echo "Skip unpack .xwb files"
     else
         echo "Unpack xwb files"
@@ -50,39 +50,28 @@ unpack_xwb() {
         for xwb_file in ./*.xwb; do
             STREAM_COUNT=$(vgmstream_cli -m $xwb_file | \
                                awk '$1 == "stream" && $2 == "count:" { print $3 }')
-            WAV_FILENAME="?n.wav"
+            WAV_FILENAME="?n.flac"
             if [[ $xwb_file =~ "New" || $xwb_file =~ "Origin" ]]; then
-                WAV_FILENAME=$(basename $xwb_file .xwb)"_?n.wav"
+                WAV_FILENAME=$(basename $xwb_file .xwb)"_?n.flac"
             fi
             for i in $(seq 1 $STREAM_COUNT); do
                 vgmstream_cli -o $WAV_FILENAME -s $i $xwb_file
             done
         done
-    fi
-}
 
-# convert wav to flac
-convert_wav() {
-    # $1: AUDIO_PATH
-    if [[ -n "$(find ./ -name '*.flac')" ]]; then
-        echo "Skip convert wav files"
-    else
-        if [[ ! $(pwd) =~ "app/audio" ]]; then
-           cd $1 # unpack xwb is skiped
-        fi
-        echo "Convert wav to flac"
-        for wav_file in MusicNew_track*.wav; do
-            INDEX="${wav_file#*track}"
+        # rename track files
+        for file in MusicNew_track*.flac; do
+            INDEX="${file#*track}"
             INDEX="${INDEX%.*}"
             if [[ ! $INDEX =~ ^[0-9]+$ ]]; then
                 continue
             fi
             INDEX=$((INDEX - 1))
-            ffmpeg -i $wav_file track"$INDEX".flac
+            mv $file track"$INDEX".flac
         done
 
         # concatenate track18b and track18c
-        TRACK18=('MusicNew_track18b.wav' 'MusicNew_track18c.wav')
+        TRACK18=('MusicNew_track18b.flac' 'MusicNew_track18c.flac')
         ffmpeg -f concat -safe 0 -i                                        \
                <(for f in "${TRACK18[@]}"; do echo "file '$PWD/$f'"; done) \
                track17.flac
@@ -105,7 +94,7 @@ copy_files() {
         if [[ ! -d $SCUMMVM_FOLDER  ]]; then
            mkdir $SCUMMVM_FOLDER
         fi
-        cp app/audio/*.flac $SCUMMVM_FOLDER
+        cp app/audio/track*.flac $SCUMMVM_FOLDER
         cp unpack_pak/classic/en/* $SCUMMVM_FOLDER
     fi
 }
@@ -127,7 +116,6 @@ main() {
     unpack_installer $OUT_PATH $EXE_PATH
     unpack_pak $UNPACK_PATH $PAK_PATH
     unpack_xwb $AUDIO_PATH
-    convert_wav $AUDIO_PATH
     copy_files $OUT_PATH
 }
 

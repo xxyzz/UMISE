@@ -6,11 +6,11 @@ Unpack monkey island special edition game files for Unix-like operating systems.
 
 - [Game installer](https://www.gog.com/game/the_secret_of_monkey_island_special_edition)
 
-- [innoextract](https://github.com/dscharrer/innoextract)
+- [innoextract](https://github.com/dscharrer/innoextract): extract installer
 
-- [vgmstream_cli](https://github.com/losnoco/vgmstream)
+- [vgmstream_cli](https://github.com/losnoco/vgmstream): unpack xwb files
 
-- [FFmpeg](https://github.com/ffmpeg/ffmpeg)
+- [FFmpeg](https://github.com/ffmpeg/ffmpeg): concatenate sound file
 
 ## Usage
 
