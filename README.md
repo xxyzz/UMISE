@@ -10,13 +10,13 @@ Unpack monkey island special edition game files for Unix-like operating systems.
 
 - [vgmstream_cli](https://github.com/losnoco/vgmstream): unpack xwb files
 
-- [FFmpeg](https://github.com/ffmpeg/ffmpeg): concatenate sound file
+- [FFmpeg](https://github.com/ffmpeg/ffmpeg): concatenate sound file and let vgmstream to support XMA.
 
 ## Usage
 
 1. Run `unpack.sh installer_path output_path`
 
-2. Select `your_output_folder/monkey` folder in ScummVM `Add Game` button.
+2. Select `your_output_folder/monkey` folder from ScummVM `Add Game` button.
 
 ## TODO
 

@@ -69,7 +69,7 @@ typedef struct {
   DWORD dwReserved2;
 } DDS_header;
 
-typedef struct PakHeader {
+typedef struct PakHeader_t {
   DWORD magic; /* KAPL -> "LPAK" */
   float version;
   DWORD startOfIndex;       /* -> 1 DWORD per file */
@@ -82,11 +82,11 @@ typedef struct PakHeader {
   DWORD sizeOfData;
 } PakHeader;
 
-typedef struct PakFileEntry {
+typedef struct PakFileEntry_t {
   DWORD fileDataPos; /* + startOfData */
   DWORD fileNamePos; /* + startOfFileNames */
   DWORD dataSize;
-  DWORD dataSize2;  /* real size? (always =dataSize) */
+  DWORD dataSize2;  /* real size? (always = dataSize) */
   DWORD compressed; /* compressed? (always 0) */
 } PakFileEntry;
 
@@ -152,9 +152,10 @@ int main(int argc, char *argv[]) {
   char *buffer;
   int opt;
   int game_files_only = 0;
+  int just_print = 0;
 
   /* Get command-line arguments */
-  while ((opt = getopt(argc, argv, "i:o:g")) != -1) {
+  while ((opt = getopt(argc, argv, "i:o:gn")) != -1) {
     switch (opt) {
     case 'i':
       inputPath = optarg;
@@ -165,10 +166,14 @@ int main(int argc, char *argv[]) {
     case 'g':
       game_files_only = 1;
       break;
+    case 'n':
+      just_print = 1;
+      break;
     default:
       fprintf(stderr,
-              "Usage: %s [-i ./inputpath/Monkey1.pak] [-o ./output_folder/] "
-              "[-g only extract scumm files]",
+              "Usage: %s [-i ./inputpath/MonkeyX.pak] [-o ./output_folder/] "
+              "[-g only extract scumm files]"
+              "[-n just print]",
               argv[0]);
       exit(EXIT_FAILURE);
     }
@@ -186,12 +191,17 @@ int main(int argc, char *argv[]) {
   fseek(file, header.startOfFileEntries, SEEK_SET);
   fread(entries, header.sizeOfFileEntries, 1, file);
   /* Dump files */
+  DWORD currentNamePos = 0;
   for (i = 0; i < numEntries; i++) {
-    fseek(file, entries[i].fileNamePos + header.startOfFileNames, SEEK_SET);
+    /* can't use Monkey2.pak fileNamePos */
+    fseek(file, header.startOfFileNames + currentNamePos, SEEK_SET);
     fgets(fileName, FILENAME_MAX, file);
+    currentNamePos += strlen(fileName) + 1;
     if (game_files_only && strstr(fileName, "classic") == NULL)
       continue;
-    printf("Extracting %s...\n", fileName);
+    printf("Extracting %s\n", fileName);
+    if (just_print)
+      continue;
     char outputPath[FILENAME_MAX];
     char *scp;
     strncpy(outputPath, outputFolder, FILENAME_MAX);
@@ -213,7 +223,7 @@ int main(int argc, char *argv[]) {
     if (strcmp("dxt", &outputPath[len - 3]) == 0) {
       outputPath[len - 2] = 'd';
       outputPath[len - 1] = 's';
-      printf("Writing %s...\n", outputPath);
+      printf("Writing %s\n", outputPath);
       write_dds(outputPath, buffer, entries[i].dataSize);
     }
     free(buffer);
